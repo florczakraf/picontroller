@@ -52,7 +52,6 @@ void pins_init() {
 }
 
 void gpio_callback(uint gpio, uint32_t events) {
-    printf("gpio callback gpio=%hhu events=%u\n", gpio, events);
     bool activate = events == GPIO_IRQ_EDGE_FALL ? true : false;
 
     switch (gpio) {
@@ -69,6 +68,7 @@ void gpio_callback(uint gpio, uint32_t events) {
             bt_y = activate ? GAMEPAD_BUTTON_Y : 0;
             break;
         default:
+            break;
     }
 }
 
@@ -120,6 +120,7 @@ uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_t
 void tud_hid_report_complete_cb(uint8_t instance, uint8_t const* report, uint16_t len)
 {
     (void) instance;
+    (void) report;
     (void) len;
 }
 
@@ -128,4 +129,7 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
 {
     (void) instance;
     (void) report_id;
+    (void) report_type;
+    (void) buffer;
+    (void) bufsize;
 }

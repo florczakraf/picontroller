@@ -38,7 +38,7 @@
                            _PID_MAP(MIDI, 3) | _PID_MAP(VENDOR, 4) )
 
 #define USB_VID   0xFEED
-#define USB_BCD   0xF00D
+#define USB_BCD   0x0200
 
 //--------------------------------------------------------------------+
 // Device Descriptors
@@ -182,9 +182,9 @@ char serial[2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1];
 char const* string_desc_arr [] =
 {
   (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)
-  "TinyUSB",                     // 1: Manufacturer
-  "TinyUSB Device",              // 2: Product
-  serial,                        // 3: Serials, uses the flash ID
+  "andr", // 1: Manufacturer
+  "picontroller", // 2: Product
+  serial, // 3: Serials, uses the flash ID
 };
 
 static uint16_t _desc_str[32];
