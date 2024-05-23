@@ -1,4 +1,5 @@
 #include "pico/stdlib.h"
+#include "pico/bootrom.h"
 #include "tusb.h"
 #include "usb_descriptors.h"
 
@@ -10,12 +11,16 @@
 uint32_t bt_a, bt_b, bt_x, bt_y;
 void hid_task();
 void pins_init();
+void interrupts_init();
+void check_firmware_load();
 void gpio_callback(uint gpio, uint32_t events);
 
 int main(void) {
-    tusb_init();
     pins_init();
+    check_firmware_load();
 
+    tusb_init();
+    interrupts_init();
 
     while (true) {
         tud_task();
@@ -24,7 +29,6 @@ int main(void) {
 
     return 0;
 }
-
 
 void pins_init() {
     gpio_init(PIN_28_A);
@@ -42,7 +46,20 @@ void pins_init() {
     gpio_init(PIN_27_Y);
     gpio_set_dir(PIN_27_Y, GPIO_IN);
     gpio_pull_up(PIN_27_Y);
+}
 
+void check_firmware_load() {
+    uint32_t deadline = to_ms_since_boot(get_absolute_time()) + 1000;
+
+    while (to_ms_since_boot(get_absolute_time()) < deadline) {
+        if (!(gpio_get(PIN_28_A) && gpio_get(PIN_15_B) && gpio_get(PIN_26_X) && gpio_get(PIN_27_Y))) {
+            reset_usb_boot(0, 0);
+        }
+    }
+}
+
+
+void interrupts_init() {
     gpio_set_irq_enabled_with_callback(PIN_28_A, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
     gpio_set_irq_enabled_with_callback(PIN_15_B, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
     gpio_set_irq_enabled_with_callback(PIN_26_X, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
