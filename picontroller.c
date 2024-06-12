@@ -11,19 +11,18 @@
 uint32_t bt_a, bt_b, bt_x, bt_y;
 void hid_task();
 void pins_init();
-void interrupts_init();
 void check_firmware_load();
-void gpio_callback(uint gpio, uint32_t events);
+void set_buttons();
 
 int main(void) {
     pins_init();
     check_firmware_load();
 
     tusb_init();
-    interrupts_init();
 
     while (true) {
         tud_task();
+        set_buttons();
         hid_task();
     }
 
@@ -59,34 +58,14 @@ void check_firmware_load() {
 }
 
 
-void interrupts_init() {
-    gpio_set_irq_enabled_with_callback(PIN_28_A, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
-    gpio_set_irq_enabled_with_callback(PIN_15_B, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
-    gpio_set_irq_enabled_with_callback(PIN_26_X, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
-    gpio_set_irq_enabled_with_callback(PIN_27_Y, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
+void set_buttons() {
+    int32_t gpios = gpio_get_all();
 
-    irq_set_enabled(IO_IRQ_BANK0, true);
-}
-
-void gpio_callback(uint gpio, uint32_t events) {
-    bool activate = events == GPIO_IRQ_EDGE_FALL ? true : false;
-
-    switch (gpio) {
-        case PIN_28_A:
-            bt_a = activate ? GAMEPAD_BUTTON_A : 0;
-            break;
-        case PIN_15_B:
-            bt_b = activate ? GAMEPAD_BUTTON_B : 0;
-            break;
-        case PIN_26_X:
-            bt_x = activate ? GAMEPAD_BUTTON_X : 0;
-            break;
-        case PIN_27_Y:
-            bt_y = activate ? GAMEPAD_BUTTON_Y : 0;
-            break;
-        default:
-            break;
-    }
+    // we pull up, so high is released
+    bt_a = ((1 << PIN_28_A) & gpios) ? 0 : GAMEPAD_BUTTON_A;
+    bt_b = ((1 << PIN_15_B) & gpios) ? 0 : GAMEPAD_BUTTON_B;
+    bt_x = ((1 << PIN_26_X) & gpios) ? 0 : GAMEPAD_BUTTON_X;
+    bt_y = ((1 << PIN_27_Y) & gpios) ? 0 : GAMEPAD_BUTTON_Y;
 }
 
 static void send_hid_report()
