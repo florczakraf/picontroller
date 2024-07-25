@@ -74,23 +74,12 @@ static void send_hid_report()
         return;
     }
 
-    static bool had_buttons = false;
     uint32_t buttons = bt_a | bt_b | bt_x | bt_y;
     hid_gamepad_report_t report = {
         .x   = 0, .y = 0, .z = 0, .rz = 0, .rx = 0, .ry = 0,
         .hat = 0, .buttons = buttons
     };
-
-    if (buttons) {
-        tud_hid_report(REPORT_ID_GAMEPAD, &report, sizeof(report));
-        had_buttons = true;
-    }
-    else {
-        if (had_buttons) {
-            tud_hid_report(REPORT_ID_GAMEPAD, &report, sizeof(report));
-        }
-        had_buttons = false;
-    }
+    tud_hid_report(REPORT_ID_GAMEPAD, &report, sizeof(report));
 }
 
 void hid_task()
